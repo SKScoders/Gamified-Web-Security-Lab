@@ -1,0 +1,16 @@
+meta {
+  name: Logout - Valid
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{base_url}}/auth/logout
+  headers {
+    Authorization: Bearer {{access_token}}
+  }
+}
+
+expect {
+  res.status: 200
+}

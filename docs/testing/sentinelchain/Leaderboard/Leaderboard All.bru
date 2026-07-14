@@ -1,0 +1,17 @@
+meta {
+  name: Leaderboard - All Time
+  type: http
+  seq: 30
+}
+
+get {
+  url: {{base_url}}/leaderboard?timeframe=all
+  headers {
+    Authorization: Bearer {{access_token}}
+  }
+}
+
+expect {
+  res.status: 200
+  res.body: type|array
+}

@@ -1,0 +1,20 @@
+meta {
+  name: Login - Valid
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{base_url}}/auth/login
+  body: json
+  {
+    "email": "test-login@example.com",
+    "password": "SecurePass123!"
+  }
+}
+
+expect {
+  res.status: 200
+  res.body.accessToken: exists
+  res.body.refreshToken: exists
+}

@@ -1,0 +1,17 @@
+meta {
+  name: Lab Status - Level 1
+  type: http
+  seq: 28
+}
+
+get {
+  url: {{base_url}}/labs/{{level1_id}}/status
+  headers {
+    Authorization: Bearer {{access_token}}
+  }
+}
+
+expect {
+  res.status: 200
+  res.body.status: "up"
+}

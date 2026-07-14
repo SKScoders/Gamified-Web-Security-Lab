@@ -1,0 +1,19 @@
+meta {
+  name: Review Status - Valid
+  type: http
+  seq: 27
+}
+
+get {
+  url: {{base_url}}/reports/status
+  headers {
+    Authorization: Bearer {{access_token}}
+  }
+}
+
+expect {
+  res.status: 200
+  res.body.total: 4
+  res.body.viewed: exists
+  res.body.levels: type|array
+}

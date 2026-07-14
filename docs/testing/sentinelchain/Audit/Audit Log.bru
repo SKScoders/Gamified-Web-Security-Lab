@@ -1,0 +1,17 @@
+meta {
+  name: Audit Log - Valid
+  type: http
+  seq: 31
+}
+
+get {
+  url: {{base_url}}/audit/{{user_id}}
+  headers {
+    Authorization: Bearer {{access_token}}
+  }
+}
+
+expect {
+  res.status: 200
+  res.body: type|array
+}

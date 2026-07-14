@@ -1,0 +1,18 @@
+meta {
+  name: List Hints - Level 1
+  type: http
+  seq: 20
+}
+
+get {
+  url: {{base_url}}/levels/{{level1_id}}/hints
+  headers {
+    Authorization: Bearer {{access_token}}
+  }
+}
+
+expect {
+  res.status: 200
+  res.body: type|array
+  res.body[0].hintOrder: exists
+}

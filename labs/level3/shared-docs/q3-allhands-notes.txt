@@ -1,0 +1,30 @@
+Solstice Dynamics — Q3 2025 All-Hands Meeting Notes
+=====================================================
+
+Date: September 15, 2025
+Attendees: All Staff
+Facilitator: Michelle Chen, VP Engineering
+
+AGENDA
+------
+1. Quarterly Revenue Review — $14.2M (up 12% QoQ)
+2. New Client Onboarding: Meridian Logistics partnership
+3. Engineering Update: v3.2 platform release on track for October
+4. HR Benefits Open Enrollment begins October 1
+5. Office Renovation: Floor 3 construction completing November
+
+KEY ANNOUNCEMENTS
+-----------------
+- Annual company retreat scheduled for January 2026 (Cabin Creek Resort)
+- New parental leave policy: 16 weeks fully paid
+- IT is rolling out mandatory 2FA by end of Q4
+- Finance team moving to new expense reporting tool (Expensify)
+
+ACTION ITEMS
+------------
+- [ ] Engineering: Complete API migration to v3 by Sept 30
+- [ ] HR: Distribute updated benefits guide
+- [ ] IT: Deploy 2FA enrollment portal
+- [ ] All: Complete compliance training by Oct 15
+
+Next all-hands: December 15, 2025

@@ -1,0 +1,23 @@
+{
+  "name": "sentinelchain-labs",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "level1": "node level1/server.js",
+    "level2": "node level2/server.js",
+    "level3": "node level3/server.js",
+    "level4": "node level4/server.js",
+    "start:all": "node level1/server.js & node level2/server.js & node level3/server.js & node level4/server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "sql.js": "^1.14.1"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/express": "^5.0.2",
+    "@types/jsonwebtoken": "^9.0.9"
+  }
+}

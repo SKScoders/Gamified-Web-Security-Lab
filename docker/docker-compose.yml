@@ -1,0 +1,80 @@
+services:
+  lab-level1:
+    build:
+      context: ../labs
+      dockerfile: Dockerfile
+      args:
+        LAB: level1
+        PORT: "3001"
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+      - JWT_SECRET=${LAB_JWT_SECRET_1:-solstice_jwt_secret_2024}
+      - INTERNAL_TOKEN=${INTERNAL_TOKEN}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3001/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  lab-level2:
+    build:
+      context: ../labs
+      dockerfile: Dockerfile
+      args:
+        LAB: level2
+        PORT: "3002"
+    ports:
+      - "3002:3002"
+    environment:
+      - PORT=3002
+      - JWT_SECRET=${LAB_JWT_SECRET_2:-hr_portal_internal_2024}
+      - INTERNAL_TOKEN=${INTERNAL_TOKEN}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3002/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  lab-level3:
+    build:
+      context: ../labs
+      dockerfile: Dockerfile
+      args:
+        LAB: level3
+        PORT: "3003"
+    ports:
+      - "3003:3003"
+    environment:
+      - PORT=3003
+      - JWT_SECRET=${LAB_JWT_SECRET_3:-file_server_token_2024}
+      - INTERNAL_TOKEN=${INTERNAL_TOKEN}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3003/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  lab-level4:
+    build:
+      context: ../labs
+      dockerfile: Dockerfile
+      args:
+        LAB: level4
+        PORT: "3004"
+    ports:
+      - "3004:3004"
+    environment:
+      - PORT=3004
+      - JWT_SECRET=${LAB_JWT_SECRET_4:-sd_admin_panel_secret_2024}
+      - INTERNAL_TOKEN=${INTERNAL_TOKEN}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3004/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3

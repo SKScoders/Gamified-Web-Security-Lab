@@ -1,0 +1,17 @@
+meta {
+  name: Start Level 2 - Skip Attempt (should fail)
+  type: http
+  seq: 16
+}
+
+post {
+  url: {{base_url}}/levels/{{level2_id}}/start
+  headers {
+    Authorization: Bearer {{access_token}}
+  }
+}
+
+expect {
+  res.status: 403
+  res.body.error: "Previous level not completed"
+}

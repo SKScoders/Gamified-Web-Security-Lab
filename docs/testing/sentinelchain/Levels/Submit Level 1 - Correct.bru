@@ -1,0 +1,23 @@
+meta {
+  name: Submit Level 1 - Correct Flag
+  type: http
+  seq: 14
+}
+
+post {
+  url: {{base_url}}/levels/{{level1_id}}/submit
+  headers {
+    Authorization: Bearer {{access_token}}
+  }
+  body: json
+  {
+    "proof": "SDX{auth_bypass-7f3a9c}"
+  }
+}
+
+expect {
+  res.status: 200
+  res.body.correct: true
+  res.body.score: 250
+  res.body.stageToken: exists
+}

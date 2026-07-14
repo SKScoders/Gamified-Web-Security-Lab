@@ -1,0 +1,20 @@
+meta {
+  name: Defense Mirror - After Completion (should succeed)
+  type: http
+  seq: 19
+}
+
+get {
+  url: {{base_url}}/levels/{{level1_id}}/defense-mirror
+  headers {
+    Authorization: Bearer {{access_token}}
+  }
+}
+
+expect {
+  res.status: 200
+  res.body.levelId: {{level1_id}}
+  res.body.review.vulnerable: type|array
+  res.body.review.patched: type|array
+  res.body.remediation: exists
+}

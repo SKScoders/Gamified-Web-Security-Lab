@@ -1,0 +1,16 @@
+meta {
+  name: Get Report - Other User (should 403)
+  type: http
+  seq: 25
+}
+
+get {
+  url: {{base_url}}/reports/{{report_id}}
+  headers {
+    Authorization: Bearer {{other_user_token}}
+  }
+}
+
+expect {
+  res.status: 403
+}

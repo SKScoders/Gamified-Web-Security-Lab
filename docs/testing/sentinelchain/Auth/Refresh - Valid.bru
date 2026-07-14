@@ -1,0 +1,19 @@
+meta {
+  name: Refresh Token - Valid
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{base_url}}/auth/refresh
+  body: json
+  {
+    "refreshToken": "{{refresh_token}}"
+  }
+}
+
+expect {
+  res.status: 200
+  res.body.accessToken: exists
+  res.body.refreshToken: exists
+}

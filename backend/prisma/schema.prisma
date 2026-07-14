@@ -1,0 +1,176 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  displayName  String    @map("display_name")
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  sessions     Session[]
+  progress     Progress[]
+  hintUsage    HintUsage[]
+  auditLog     AuditLog[]
+  reports      Report[]
+  reviewViewed ReviewViewed[]
+
+  @@map("users")
+}
+
+model Session {
+  id               String   @id @default(uuid())
+  userId           String   @map("user_id")
+  refreshTokenHash String   @map("refresh_token_hash")
+  expiresAt        DateTime @map("expires_at")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model Level {
+  id                String   @id @default(uuid())
+  orderIndex        Int      @unique @map("order_index")
+  title             String
+  description       String   @default("")
+  vulnCategory      String   @map("vuln_category")
+  owaspCategory     String   @map("owasp_category")
+  mitreTechniqueId  String   @map("mitre_technique_id")
+  mitreTechniqueName String @default("") @map("mitre_technique_name")
+  cvssBaseVector    String   @map("cvss_base_vector")
+  cvssScore         Float    @default(0) @map("cvss_score")
+  cweId             String   @default("") @map("cwe_id")
+  cweTitle          String   @default("") @map("cwe_title")
+  difficulty        String   @default("Intermediate")
+  points            Int      @default(0)
+  expectedFlag      String   @map("expected_flag")
+  remediation       String   @default("")
+  defensiveReview   Json?    @map("defensive_review")
+
+  progress          Progress[]
+  hints             Hint[]
+  labInstances      LabInstance[]
+  reviewViewed      ReviewViewed[]
+
+  @@map("levels")
+}
+
+model Progress {
+  id          String    @id @default(uuid())
+  userId      String    @map("user_id")
+  levelId     String    @map("level_id")
+  status      String    @default("locked")
+  attempts    Int       @default(0)
+  score       Int       @default(0)
+  startedAt   DateTime? @map("started_at")
+  completedAt DateTime? @map("completed_at")
+  bestTime    String?   @map("best_time")
+
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  level       Level     @relation(fields: [levelId], references: [id], onDelete: Cascade)
+  stageTokens StageToken[]
+
+  @@unique([userId, levelId])
+  @@map("progress")
+}
+
+model StageToken {
+  id                    String   @id @default(uuid())
+  progressId            String   @map("progress_id")
+  signedToken           String   @map("signed_token")
+  exploitSignatureHash  String   @map("exploit_signature_hash")
+  issuedAt              DateTime @default(now()) @map("issued_at")
+  expiresAt             DateTime @map("expires_at")
+
+  progress Progress @relation(fields: [progressId], references: [id], onDelete: Cascade)
+
+  @@map("stage_tokens")
+}
+
+model Hint {
+  id          String @id @default(uuid())
+  levelId     String @map("level_id")
+  hintOrder   Int    @map("hint_order")
+  title       String @default("")
+  content     String
+  scorePenalty Int   @map("score_penalty")
+
+  level     Level      @relation(fields: [levelId], references: [id], onDelete: Cascade)
+  hintUsage HintUsage[]
+
+  @@map("hints")
+}
+
+model HintUsage {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  hintId      String   @map("hint_id")
+  requestedAt DateTime @default(now()) @map("requested_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  hint Hint @relation(fields: [hintId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, hintId])
+  @@map("hint_usage")
+}
+
+model LabInstance {
+  id          String   @id @default(uuid())
+  levelId     String   @map("level_id")
+  sessionId   String   @map("session_id")
+  containerId String   @map("container_id")
+  status      String   @default("running")
+  startedAt   DateTime @default(now()) @map("started_at")
+  expiresAt   DateTime @map("expires_at")
+
+  level Level @relation(fields: [levelId], references: [id], onDelete: Cascade)
+
+  @@map("lab_instances")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  eventType  String   @map("event_type")
+  payloadJson String  @map("payload_json")
+  prevHash   String   @map("prev_hash")
+  entryHash  String   @map("entry_hash")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("audit_log")
+}
+
+model Report {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  pdfUrl      String?  @map("pdf_url")
+  summaryJson String   @map("summary_json")
+  generatedAt DateTime @default(now()) @map("generated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("reports")
+}
+
+model ReviewViewed {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  levelId   String   @map("level_id")
+  viewedAt  DateTime @default(now()) @map("viewed_at")
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  level Level @relation(fields: [levelId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, levelId])
+  @@map("review_viewed")
+}

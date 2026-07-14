@@ -1,0 +1,17 @@
+meta {
+  name: Download Report PDF - Valid
+  type: http
+  seq: 26
+}
+
+get {
+  url: {{base_url}}/reports/{{report_id}}/download
+  headers {
+    Authorization: Bearer {{access_token}}
+  }
+}
+
+expect {
+  res.status: 200
+  res.headers.content-type: "application/pdf"
+}

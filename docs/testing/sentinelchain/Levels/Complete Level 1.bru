@@ -1,0 +1,19 @@
+meta {
+  name: Complete Level 1 - Valid
+  type: http
+  seq: 17
+}
+
+post {
+  url: {{base_url}}/levels/{{level1_id}}/complete
+  headers {
+    Authorization: Bearer {{access_token}}
+  }
+}
+
+expect {
+  res.status: 200
+  res.body.progressId: exists
+  res.body.stageToken: exists
+  res.body.score: 250
+}

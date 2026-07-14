@@ -1,0 +1,22 @@
+TO: All Engineering Staff
+FROM: David Okonkwo, Operations
+DATE: August 22, 2025
+RE: Scheduled Maintenance — File Server
+
+Team,
+
+We will be performing scheduled maintenance on the internal file server
+this Saturday (August 23) from 2:00 AM to 6:00 AM EST.
+
+Impact:
+- /shared-docs will be read-only during maintenance
+- File uploads will be temporarily disabled
+- Downloads of files already cached will continue to work
+
+The maintenance window is needed to apply security patches and expand
+storage capacity. We apologize for any inconvenience.
+
+If you need access to critical documents during the maintenance window,
+contact the IT Help Desk at helpdesk@solsticedynamics.internal.
+
+— David

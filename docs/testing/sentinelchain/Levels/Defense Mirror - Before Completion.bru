@@ -1,0 +1,17 @@
+meta {
+  name: Defense Mirror - Before Completion (should fail)
+  type: http
+  seq: 18
+}
+
+get {
+  url: {{base_url}}/levels/{{level1_id}}/defense-mirror
+  headers {
+    Authorization: Bearer {{access_token}}
+  }
+}
+
+expect {
+  res.status: 403
+  res.body.error: contains("Complete this level first")
+}

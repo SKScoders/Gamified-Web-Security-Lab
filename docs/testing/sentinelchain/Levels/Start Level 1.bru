@@ -1,0 +1,18 @@
+meta {
+  name: Start Level 1 - Valid
+  type: http
+  seq: 13
+}
+
+post {
+  url: {{base_url}}/levels/{{level1_id}}/start
+  headers {
+    Authorization: Bearer {{access_token}}
+  }
+}
+
+expect {
+  res.status: 201
+  res.body.status: "in-progress"
+  res.body.levelId: {{level1_id}}
+}

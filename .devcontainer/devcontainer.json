@@ -1,0 +1,12 @@
+{
+  "name": "SentinelChain Docker Testing",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    "ghcr.io/devcontainers/features/node:1": { "version": "20" }
+  },
+  "postCreateCommand": "cd backend && npm install && npx prisma generate",
+  "remoteEnv": {
+    "API_URL": "http://localhost:4000/api"
+  }
+}

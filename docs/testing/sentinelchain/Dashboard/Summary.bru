@@ -1,0 +1,18 @@
+meta {
+  name: Dashboard Summary - Valid
+  type: http
+  seq: 29
+}
+
+get {
+  url: {{base_url}}/dashboard/summary
+  headers {
+    Authorization: Bearer {{access_token}}
+  }
+}
+
+expect {
+  res.status: 200
+  res.body.totalScore: exists
+  res.body.levelsSolved: exists
+}

@@ -1,0 +1,20 @@
+meta {
+  name: Register - Duplicate Email
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{base_url}}/auth/register
+  body: json
+  {
+    "email": "existing@example.com",
+    "password": "SecurePass123!",
+    "displayName": "Duplicate User"
+  }
+}
+
+expect {
+  res.status: 409
+  res.body.error: exists
+}

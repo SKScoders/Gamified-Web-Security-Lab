@@ -1,0 +1,18 @@
+meta {
+  name: Reveal Hint - Level 1 Hint 1
+  type: http
+  seq: 21
+}
+
+post {
+  url: {{base_url}}/levels/{{level1_id}}/hints/{{hint1_id}}/reveal
+  headers {
+    Authorization: Bearer {{access_token}}
+  }
+}
+
+expect {
+  res.status: 200
+  res.body.content: exists
+  res.body.scorePenalty: exists
+}

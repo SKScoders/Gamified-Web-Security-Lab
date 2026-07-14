@@ -1,0 +1,21 @@
+meta {
+  name: Submit Level 1 - Wrong Flag
+  type: http
+  seq: 15
+}
+
+post {
+  url: {{base_url}}/levels/{{level1_id}}/submit
+  headers {
+    Authorization: Bearer {{access_token}}
+  }
+  body: json
+  {
+    "proof": "SDX{wrong-flag}"
+  }
+}
+
+expect {
+  res.status: 200
+  res.body.correct: false
+}

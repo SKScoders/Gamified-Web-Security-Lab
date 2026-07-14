@@ -1,0 +1,19 @@
+meta {
+  name: List Levels - Valid
+  type: http
+  seq: 11
+}
+
+get {
+  url: {{base_url}}/levels
+  headers {
+    Authorization: Bearer {{access_token}}
+  }
+}
+
+expect {
+  res.status: 200
+  res.body: type|array
+  res.body[0].title: exists
+  res.body[0].orderIndex: exists
+}

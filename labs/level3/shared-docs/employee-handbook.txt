@@ -1,0 +1,25 @@
+Solstice Dynamics — Employee Handbook (Excerpt)
+==============================================
+
+Chapter 4: Information Security Policy
+
+4.1 Access Control
+All employees are responsible for the security of their account credentials.
+Shared accounts are prohibited. Service accounts must be registered with
+IT Security and reviewed quarterly.
+
+4.2 Data Classification
+- PUBLIC: Marketing materials, public-facing documentation
+- INTERNAL: Meeting notes, internal memos, project documentation
+- CONFIDENTIAL: Financial data, customer PII, HR records
+- RESTRICTED: API keys, tokens, system credentials
+
+4.3 File Storage Guidelines
+- Use /shared-docs for INTERNAL documents only
+- CONFIDENTIAL and RESTRICTED data must use encrypted storage
+- Never store credentials in plain text files
+- Report any suspected security incidents to security@solsticedynamics.internal
+
+4.4 Acceptable Use
+Company systems are for authorized business use only. Unauthorized access
+to systems or data is grounds for immediate termination.

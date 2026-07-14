@@ -1,0 +1,18 @@
+meta {
+  name: Refresh Token - Invalid
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{base_url}}/auth/refresh
+  body: json
+  {
+    "refreshToken": "totally-fake-token"
+  }
+}
+
+expect {
+  res.status: 401
+  res.body.error: exists
+}

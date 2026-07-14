@@ -1,0 +1,17 @@
+meta {
+  name: Generate Report - Before Reviews (should fail)
+  type: http
+  seq: 22
+}
+
+post {
+  url: {{base_url}}/reports/generate
+  headers {
+    Authorization: Bearer {{access_token}}
+  }
+}
+
+expect {
+  res.status: 400
+  res.body.error: contains("reviews")
+}
