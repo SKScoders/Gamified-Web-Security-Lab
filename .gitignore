@@ -20,6 +20,7 @@ yarn-error.log*
 
 # env files
 .env*
+!labs/level3/config/.env.production
 
 # vercel
 .vercel
@@ -27,3 +28,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# server logs
+*.log
+
+# railway
+.railway-config-*
+
+# misc
+cslab.txt

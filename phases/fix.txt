@@ -1,0 +1,22 @@
+The shared labs/Dockerfile (one Dockerfile, all 4 labs copied in, selected
+via ARG LAB/PORT at build time) has caused deployment failures on both
+Railway and Render because every build depends on every lab's files being
+present, even when only one lab is being deployed. This is more fragile
+than necessary.
+
+Revert to 4 fully independent, self-contained Dockerfiles, one inside each
+lab's own folder (labs/level1-auth-bypass/Dockerfile,
+labs/level2-sql-injection/Dockerfile, labs/level3-server-side/Dockerfile,
+labs/level4-priv-escalation/Dockerfile), matching the original Phase 7
+master prompt. Each Dockerfile should ONLY copy files from its own lab's
+folder — no references to sibling levels at all. Delete the shared
+labs/Dockerfile once all 4 independent ones are confirmed working.
+
+Also specifically verify labs/level3/config/ currently exists in the git
+repository with real tracked files in it (not an empty directory, which
+git silently drops) before finishing — this was the immediate cause of the
+last build failure and needs to actually be fixed, not just avoided by the
+Dockerfile split.
+
+Confirm all 4 new Dockerfiles build successfully (via a GitHub Codespace,
+since there's no local Docker) before I redeploy anything.
