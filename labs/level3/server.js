@@ -28,10 +28,10 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use('/shared', express.static(path.join(__dirname, '..', 'shared')))
 
-// Allow cross-origin iframe embedding from any origin
+const ALLOWED_ORIGIN = process.env.ALLOWED_FRAME_ORIGIN || '*'
 app.use((_req, res, next) => {
   res.removeHeader('X-Frame-Options')
-  res.setHeader('Content-Security-Policy', "frame-ancestors *")
+  res.setHeader('Content-Security-Policy', `frame-ancestors ${ALLOWED_ORIGIN}`)
   next()
 })
 
