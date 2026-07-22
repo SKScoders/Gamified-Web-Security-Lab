@@ -1,5 +1,45 @@
- Fix the Iframe Permission on Each Lab
-Go to Railway → click on your Level 1 service
-Click Variables
-Add whatever variable your code uses to control the CSP header (check your repo — it might be something like ALLOWED_FRAME_ORIGIN). Set it to your real Vercel URL from Part D.
-Repeat for Level 2, 3, and 4.
+LAB_URL_1 is confirmed correctly set to
+https://level1-production-9832.up.railway.app in Render's environment
+variables, and the backend has been redeployed since. But in production,
+the API response the frontend receives still contains localhost:3001 as
+the lab URL for Level 1. Find the real root cause — do not assume it's
+fixed just because the env var is set correctly, and do not report success
+without actually testing the live response.
+
+Check all of these, in this order, and report what you find at each step
+before moving to the next:
+
+1. Is the lab URL stored in the database (a column on the Level model,
+   populated by the seed script) rather than read from process.env at
+   request time? If so, that's the real bug — the env var is irrelevant if
+   the seed script wrote localhost:3001 into the database once and nothing
+   re-reads the environment afterward. Check src/prisma/seed.ts for
+   hardcoded localhost URLs in the level data.
+
+2. Search the entire backend codebase for the literal string "localhost"
+   — check every result, and identify whether any of them is a fallback
+   value (e.g. `process.env.LAB_URL_1 || 'http://localhost:3001'`) that
+   could be silently activating instead of erroring when the real env var
+   isn't read correctly.
+
+3. Check the exact environment variable name the code expects versus what's
+   actually set in Render — confirm character-for-character match,
+   including underscores and casing (e.g. LAB_URL_1 vs LAB_URLS[1] vs
+   LABS_URL_1).
+
+4. Check the frontend (lib/api.ts or wherever level/lab data is consumed)
+   for any hardcoded or fallback lab URL that could override or ignore
+   whatever the backend actually returns.
+
+5. Check for an import-order issue: if the module that builds the lab URL
+   config is imported before dotenv loads environment variables, it could
+   capture an undefined value once at startup and never re-read it, similar
+   to the earlier dotenv/config ordering bug fixed in Phase 4.
+
+After identifying and fixing the actual cause, verify it yourself: hit the
+real production API endpoint directly (curl against the live Render URL,
+not localhost) and confirm the response now contains the real Railway URL,
+not localhost. Paste the actual curl output as proof, not just a
+description of the fix. If a database value needed correcting, also
+confirm you ran the fix against the actual production database, not just
+local.

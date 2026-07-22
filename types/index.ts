@@ -9,6 +9,7 @@ export interface User {
 export interface Level {
   id: string
   orderIndex: number
+  labUrl: string | null
   title: string
   description: string
   vulnCategory: string

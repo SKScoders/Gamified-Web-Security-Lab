@@ -22,13 +22,6 @@ interface LevelWithStatus extends Level {
   bestTime: string | null
 }
 
-const LAB_URLS: Record<number, string> = {
-  1: 'http://localhost:3001',
-  2: 'http://localhost:3002',
-  3: 'http://localhost:3003',
-  4: 'http://localhost:3004',
-}
-
 export default function LevelDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
   const { id } = React.use(params)
@@ -277,7 +270,7 @@ export default function LevelDetailPage({ params }: { params: Promise<{ id: stri
         <div className="flex-1 overflow-hidden">
           <ResizableContainer defaultLeftWidth={50} minLeftWidth={360} maxLeftWidth={75}>
             <LabFrame
-              src={level ? LAB_URLS[level.orderIndex] : undefined}
+              src={level?.labUrl || undefined}
               title={level ? `${level.title} — Lab Environment` : undefined}
             />
             <div className="overflow-auto p-6">

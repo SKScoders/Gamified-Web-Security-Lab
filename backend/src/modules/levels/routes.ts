@@ -10,6 +10,13 @@ import { logEvent } from '../audit/service'
 const router = Router()
 const STAGE_SECRET = process.env.JWT_SECRET || 'sentinelchain-dev-jwt-secret'
 
+const LAB_URLS: Record<number, string> = {
+  1: process.env.LAB_URL_1 || 'http://localhost:3001',
+  2: process.env.LAB_URL_2 || 'http://localhost:3002',
+  3: process.env.LAB_URL_3 || 'http://localhost:3003',
+  4: process.env.LAB_URL_4 || 'http://localhost:4004',
+}
+
 function getLevelStatus(
   levelOrder: number,
   progressMap: Map<string, { status: string; orderIndex: number }>,
@@ -61,6 +68,7 @@ router.get('/', authenticate, async (req, res) => {
       return {
         id: level.id,
         orderIndex: level.orderIndex,
+        labUrl: LAB_URLS[level.orderIndex] || null,
         title: level.title,
         description: level.description,
         vulnCategory: level.vulnCategory,
