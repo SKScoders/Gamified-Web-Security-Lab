@@ -38,7 +38,7 @@ app.use((_req, res, next) => {
 // Client-side JS
 app.get('/static/app.js', (_req, res) => {
   res.type('application/javascript').send(`
-const API = 'http://localhost:${PORT}';
+const API = '';
 
 async function login(token) {
   const res = await fetch(API + '/api/verify', {

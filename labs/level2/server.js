@@ -91,7 +91,7 @@ app.use((_req, res, next) => {
 
   app.get('/static/app.js', (_req, res) => {
     res.type('application/javascript').send(`
-const API = 'http://localhost:${PORT}';
+const API = '';
 async function login(email, password) {
   const res = await fetch(API + '/api/login', {
     method: 'POST',

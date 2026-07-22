@@ -41,7 +41,7 @@ app.get('/static/app.js', (_req, res) => {
 // Solstice Dynamics Employee Portal — Client Logic
 // TODO: Remove debug logging before production deploy — M.Chen
 
-const API = 'http://localhost:${PORT}';
+const API = '';
 
 async function login(email, password) {
   const res = await fetch(API + '/api/login', {

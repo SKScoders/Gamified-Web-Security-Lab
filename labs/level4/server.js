@@ -60,7 +60,7 @@ app.use((_req, res, next) => {
 
 app.get('/static/app.js', (_req, res) => {
   res.type('application/javascript').send(`
-const API = 'http://localhost:${PORT}';
+const API = '';
 
 function getToken() { return localStorage.getItem('admin_token'); }
 
