@@ -11,7 +11,7 @@ import { registerSchema, loginSchema, refreshSchema } from '../../validation/sch
 const router = Router()
 const JWT_SECRET = process.env.JWT_SECRET || 'sentinelchain-dev-jwt-secret'
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'sentinelchain-dev-refresh-secret'
-const ACCESS_TOKEN_EXPIRY = '15m'
+const ACCESS_TOKEN_EXPIRY = '60m'
 const REFRESH_TOKEN_EXPIRY_DAYS = 30
 
 function hashToken(token: string): string {

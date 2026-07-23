@@ -23,12 +23,18 @@ function getLevelStatus(
   completedOrders: number[]
 ): 'locked' | 'in-progress' | 'solved' {
   if (completedOrders.includes(levelOrder)) return 'solved'
-  const prevCompleted = levelOrder === 1 || completedOrders.includes(levelOrder - 1)
+
   const inProgress = Array.from(progressMap.values()).find(
     p => p.orderIndex === levelOrder && p.status === 'in-progress'
   )
   if (inProgress) return 'in-progress'
-  if (prevCompleted) return 'in-progress'
+
+  // Levels 2+: available to start once previous level is solved
+  if (levelOrder > 1 && completedOrders.includes(levelOrder - 1)) {
+    return 'in-progress'
+  }
+
+  // Level 1 with no progress record, or previous level not yet solved
   return 'locked'
 }
 

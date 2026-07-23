@@ -83,7 +83,7 @@ const defensiveReviews: Record<number, object> = {
       { line: 5, content: '  if (!file) return res.status(400).json({ error: "File parameter required" })', type: 'unchanged' },
       { line: 6, content: '', type: 'unchanged' },
       { line: 7, content: '  // VULNERABILITY: No sanitization of path traversal sequences', type: 'unchanged' },
-      { line: 8, content: "  const filePath = path.join(SHARED_DOCS_DIR, dir || '', file)", type: 'removed', note: 'VULNERABLE: path.join does NOT prevent traversal. An attacker can use "../../../config/.env.production" to escape the sandbox and read arbitrary files.' },
+      { line: 8, content: "  const filePath = path.join(SHARED_DOCS_DIR, dir || '', file)", type: 'removed', note: 'VULNERABLE: path.join does NOT prevent traversal. An attacker can use "../config/.env.production" to escape the sandbox and read arbitrary files.' },
       { line: 9, content: '', type: 'unchanged' },
       { line: 10, content: '  try {', type: 'unchanged' },
       { line: 11, content: '    const content = fs.readFileSync(filePath, "utf-8")', type: 'unchanged' },
@@ -163,8 +163,16 @@ const defensiveReviews: Record<number, object> = {
   },
 }
 
+const LEVEL_IDS = [
+  'a1b2c3d4-0001-4000-8000-000000000001',
+  'a1b2c3d4-0002-4000-8000-000000000002',
+  'a1b2c3d4-0003-4000-8000-000000000003',
+  'a1b2c3d4-0004-4000-8000-000000000004',
+]
+
 const levelsData = [
   {
+    id: LEVEL_IDS[0],
     orderIndex: 1,
     title: 'Authentication Bypass',
     description: 'Exploit weak session management to access protected admin panels without valid credentials.',
@@ -182,6 +190,7 @@ const levelsData = [
     remediation: 'Replace the hardcoded or weak JWT secret with a cryptographically random string of at least 256 bits (32 bytes). Better yet, use asymmetric signing (RS256/ES256) with a private key kept server-side and a public key distributed to verifying services. Never derive the secret from guessable values such as environment names, default strings, or timestamps. Ensure secrets are never leaked via source maps, debug logs, exposed .git directories, or client-side JavaScript bundles. Rotate secrets periodically and implement a key rotation strategy that allows multiple valid signing keys during transition periods.',
   },
   {
+    id: LEVEL_IDS[1],
     orderIndex: 2,
     title: 'SQL Injection',
     description: 'Find and exploit a SQL injection vulnerability in the search form to extract hidden data.',
@@ -199,6 +208,7 @@ const levelsData = [
     remediation: 'Use parameterized queries (prepared statements) for ALL database interactions — never construct SQL by concatenating or interpolating user input into query strings. Input validation alone is insufficient; even well-validated input can become exploitable if the query construction pattern is unsafe. Use an ORM or query builder that enforces parameterization by default (e.g., Prisma, Knex). Apply the principle of least privilege to database accounts: the application\'s DB user should only have the minimum permissions required (e.g., no DROP, no file I/O). Enable SQL query logging in development to audit query patterns before deployment.',
   },
   {
+    id: LEVEL_IDS[2],
     orderIndex: 3,
     title: 'Server-Side Vulnerability',
     description: 'Identify and exploit a path traversal vulnerability to read files outside the intended directory.',
@@ -216,6 +226,7 @@ const levelsData = [
     remediation: 'Canonicalize all file paths using the operating system\'s path resolution (e.g., Node.js path.resolve() or path.normalize()) BEFORE validation, and confirm the resolved path starts with the intended base directory. Reject any input containing traversal sequences (../, ..\\, URL-encoded variants %2e%2e%2f, %2e%2e/, double-encoded sequences) rather than attempting to strip or blocklist them — blocklists are inevitably incomplete. Use a whitelist of allowed filenames or a mapping from user-supplied keys to specific files instead of passing raw paths. Run the application with a dedicated, unprivileged OS user that has read access only to the specific directories it needs.',
   },
   {
+    id: LEVEL_IDS[3],
     orderIndex: 4,
     title: 'Privilege Escalation',
     description: 'Chain a broken access control vulnerability to escalate from user to admin and exfiltrate data.',
@@ -248,7 +259,7 @@ const hintsData: Record<number, Array<{ hintOrder: number; title: string; conten
   3: [
     { hintOrder: 1, title: 'Path Parameters', content: 'The file download endpoint takes a filename parameter. Try using ../ to navigate up directory levels.', scorePenalty: 5 },
     { hintOrder: 2, title: 'Config Discovery', content: 'Traverse to the app root directory and look for configuration files like .env, config.json, or server.js that may contain secrets.', scorePenalty: 10 },
-    { hintOrder: 3, title: 'Flag Location', content: 'The flag is stored in a file called .flag_secret at the application root. Use path traversal: ../../../.flag_secret', scorePenalty: 20 },
+    { hintOrder: 3, title: 'Flag Location', content: 'The flag is stored in config/.env.production. Use path traversal: ../config/.env.production', scorePenalty: 20 },
   ],
   4: [
     { hintOrder: 1, title: 'Profile Inspection', content: 'Look at your user profile response. The "role" field may be editable through the profile update endpoint.', scorePenalty: 5 },

@@ -25,7 +25,7 @@ const customerData = [
 ]
 
 function authenticate(req, res, next) {
-  const token = req.query.token || req.headers.authorization?.split(' ')[1]
+  const token = req.query.token || req.headers.authorization?.split(' ')[1] || req.body?.token
   if (!token) return res.status(401).json({ error: 'Authentication required' })
   try {
     const payload = jwt.verify(token, JWT_SECRET)

@@ -1,19 +1,143 @@
-The Level 1 lab, when deployed to production (Railway), has its login form
-hardcoded to send the login POST request to localhost:3001 instead of the
-actual current domain. This causes a CORS failure in the browser since
-localhost:3001 doesn't exist for anyone visiting the real deployed site.
+SentinelChain — Master Build Prompt for OpenCode
 
-Find where the login form's fetch/API call is defined in the Level 1 lab's
-code and fix it to use a relative URL (e.g. fetch('/login') instead of
-fetch('http://localhost:3001/login')), so it automatically works whether
-running locally or deployed anywhere, without needing to hardcode a domain
-at all.
+Paste this whole document into OpenCode as the task prompt.
 
-Check if the SAME hardcoded-localhost mistake exists in Levels 2, 3, and 4
-as well, since they were very likely built from the same pattern — fix all
-4 if so, not just Level 1.
+0. Ground truth — read this before touching anything
 
-After fixing, confirm by checking the actual deployed lab's login page
-network request and confirming it goes to the correct current domain, not
-localhost — don't just report the code looks fixed, verify the real
-running site.
+You are working on an existing, partially-deployed project. Do not assume a stack, a schema, or a file structure — inspect the real repo first and adapt everything below to what you find.
+
+Confirmed real stack (do not substitute):
+
+Frontend: Next.js (App Router), TypeScript, Tailwind, shadcn/ui — deployed on Vercel
+Backend: Node/Express, TypeScript, Prisma ORM
+Database: PostgreSQL (hosted on Neon) — not MongoDB, not Mongoose
+4 vulnerable labs: standalone Dockerized Node/Express apps (3 on Railway, 1 on Render)
+Auth: JWT
+
+Hard rule: if any instruction below assumes a table/model name, field name, or API shape that doesn't match the real Prisma schema, adapt to the real schema — do not create a parallel/duplicate data model to make the instruction "work as written."
+
+Non-negotiable safety constraint: all 7 services listed below are currently live and working. Any change must be additive/backward-compatible first, verified locally or on a preview deploy, and only then pushed to the branch that auto-deploys to production. Do not touch the 4 lab apps' Docker configs, CSP/security headers, or CORS settings for this task unless a phase explicitly says so.
+
+Service	Platform	Status
+Frontend	Vercel	Live
+Backend	Render	Live
+Database	Neon (Postgres)	Live
+Level 1–3 labs	Railway	Live
+Level 4 lab	Render	Live
+1. The actual problem to solve
+
+The dashboard currently shows hardcoded/fake data instead of real per-user progress:
+
+Total Points — hardcoded
+Solved Challenges count — hardcoded
+Streak — hardcoded
+Leaderboard — contains fake test entries (e.g. "PDF Complete", "Final Test", "Phase9 Test", "Security Test") mixed with real users
+"Continue where you left off" — shows a stale/impossible state ("Authentication Bypass — 1 attempt(s) in progress") for brand-new accounts that have made zero attempts
+
+Everything below fixes this, end to end, on the real schema.
+
+PHASE 1 — Audit (do this first, produce reports, do not code yet)
+
+Scan the actual repo (frontend + backend + Prisma schema) and produce:
+
+PROJECT_AUDIT.md — broken pages, missing API routes, wrong Prisma queries, hardcoded values, fake/seed data left in production tables, UI inconsistencies, missing loading/error states, unused files/components
+SECURITY_REPORT.md — JWT handling, authorization checks (esp. any client-trusted fields — this app has a deliberate one in Level 4's lab, do not "fix" that one, it's the challenge itself), CORS config, rate limiting, input validation, secrets in logs
+PERFORMANCE_REPORT.md — dashboard load time, leaderboard query cost, N+1 queries, missing indexes, bundle size
+
+Stop and present these three reports before starting Phase 2. Do not proceed on assumption — wait for confirmation the audit findings are accurate.
+
+PHASE 2 — Dashboard: real data, no mocks
+A. Total Points
+
+GET /api/user/points → { totalPoints: number } Computed as SUM(points) across the user's solved challenges via a real Prisma query (aggregate, not fetch-all-then-sum in JS unless the table is tiny).
+
+B. Solved Challenges
+
+GET /api/user/stats → { solved: number, total: number } Dashboard renders solved/total (e.g. 2/4).
+
+C. Streak
+
+Fields on the user's stats record: currentStreak, longestStreak, lastSolvedDate. Logic:
+
+Solving ≥1 challenge on a calendar day the user hadn't already solved one on → increment currentStreak, update longestStreak if exceeded.
+If the gap since lastSolvedDate exceeds 24h → reset currentStreak to 1 (not 0 — the qualifying solve that triggered the check counts).
+Store dates in UTC; be explicit about timezone handling in the implementation notes since "24 hours" and "calendar day" are different definitions — pick one, document it, apply it consistently.
+D. Leaderboard
+
+GET /api/leaderboard, sorted by total points DESC, then completion time ASC. Returns rank, username, score, levels solved, time.
+
+Delete the fake seed entries ("PDF Complete", "Final Test", "Phase9 Test", "Security Test") from the actual database — write a one-time cleanup script, run it, and confirm via a fresh query that they're gone (not just removed from a seed file that already ran).
+Real-time refresh: use the existing backend setup — if Socket.IO is already wired in anywhere in this project, extend it; if not, do not introduce a new real-time dependency for this alone — a 15–30s poll is an acceptable, much lower-risk choice given this is a hackathon deliverable on free-tier hosting. Flag the tradeoff and let the user decide before implementing.
+E. Continue Where You Left Off
+
+Logic:
+
+attempts.length === 0 → "No active challenges" / "Start your first challenge"
+attempts.length > 0 AND most recent attempted challenge's status != solved → show that challenge as "continue"
+All challenges solved → "Congratulations! Chain Complete."
+Root-cause the current bug (new accounts showing a phantom in-progress attempt) rather than patching around it — this is almost certainly either a seed/fixture record attached to new users by default, or a query missing a WHERE userId = ... filter. Identify which, fix the actual cause, and confirm in the audit report which one it was.
+PHASE 3 — Schema (Prisma, Postgres — adapt to existing models)
+
+Before creating anything, run a Prisma schema inspection and report what already exists. Only add/modify what's missing. Expected shape (adapt names to match existing conventions in the repo):
+
+User — existing
+Challenge / Level — existing (4 rows, one per lab)
+Submission / Attempt — userId, challengeId, flag/status, timestamps
+UserStats — userId, totalPoints, currentStreak, longestStreak, solvedCount, lastSolvedDate
+
+Write a proper Prisma migration for anything new. Do not hand-edit the database directly on Neon — migrations only, so the schema stays reproducible.
+
+PHASE 4 — Real-time updates (conditional on Phase 2D decision)
+
+Only build this if the poll-vs-socket decision above came back in favor of Socket.IO. If so:
+
+Events: user:solved, leaderboard:update, stats:update, streak:update
+Confirm this doesn't conflict with Render's free-tier connection limits or the existing CORS_ORIGIN config (there was a prior trailing-slash CORS bug — check the fix is still in place before adding new socket origins).
+PHASE 5 — Validation script
+
+npm run validate — checks for missing API routes, broken imports, circular deps, unused files, DB connectivity (against the real Neon connection string, read from env — never hardcoded), required env vars present, JWT secret present and non-default. Output → VALIDATION_REPORT.md.
+
+PHASE 6 — Testing
+Backend: Jest + Supertest for the new/changed routes (/api/user/points, /api/user/stats, /api/leaderboard, continue-where-left-off logic)
+Frontend: component tests for dashboard, leaderboard
+Integration: signup → solve a challenge → stats update → leaderboard reflects it → streak increments
+Target: full coverage of the paths touched in this task, not the whole app (the 4 labs and existing auth flow are already covered/working — don't re-test what wasn't changed)
+PHASE 7 — Security check (scoped to what changed)
+
+Confirm the new/changed endpoints:
+
+Require auth (a user can't query another user's points/stats by guessing an ID)
+Are rate-limited consistent with the rest of the API
+Don't log tokens or secrets
+Don't reintroduce the CORS trailing-slash issue
+PHASE 8 — Performance
+
+Target: dashboard endpoints respond in <1s, leaderboard in <500ms, on Render's free tier (note if free-tier cold starts make this unrealistic — report honestly rather than claiming a target was hit if it wasn't).
+
+PHASE 9 — Final QA matrix
+
+Manually verify, against the actual deployed URLs (not just locally):
+
+Brand-new user → correct empty states everywhere, no phantom attempt
+User with 1 solve
+User with all 4 solved → "Chain Complete"
+Expired JWT → clean re-auth prompt, no crash
+Two users solving concurrently → leaderboard reflects both correctly, no race condition on points/streak updates
+CRITICAL PROCESS RULE — verification, not vibes
+
+At the end of every phase, before moving to the next one:
+
+State exactly which files changed.
+Confirm the change is actually pushed and visible on GitHub's website at the real repo URL — not just "committed locally" or "done."
+Show the actual query/response (or test output) proving the feature works, not just a description of what should happen.
+
+Do not report a phase "done and verified" unless steps 1–3 above were actually performed. If a fix doesn't stick, say so explicitly rather than re-summarizing the intended fix as if it happened.
+
+Final deliverables
+All modified files (diffable)
+Prisma migration files
+API docs for new/changed endpoints
+Test results (actual output, not a summary claiming they pass)
+PROJECT_AUDIT.md, SECURITY_REPORT.md, PERFORMANCE_REPORT.md, VALIDATION_REPORT.md
+Confirmation, with evidence, that the fake leaderboard entries are gone from the live Neon database
+Deployment notes — anything that needs a Render/Vercel env var change or redeploy, called out explicitly before you do it

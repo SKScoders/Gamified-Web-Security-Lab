@@ -218,7 +218,7 @@ app.get('/api/download', authenticate, (req, res) => {
   if (!file) return res.status(400).json({ error: 'File parameter required' })
 
   // VULNERABILITY: No sanitization of path traversal sequences (../)
-  // The attacker can use: ../../../config/.env.production
+  // The attacker can use: ../config/.env.production to read files outside the sandbox
   const filePath = path.join(SHARED_DOCS_DIR, dir || '', file)
 
   try {
