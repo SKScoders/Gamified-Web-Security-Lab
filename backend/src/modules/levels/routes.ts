@@ -29,12 +29,14 @@ function getLevelStatus(
   )
   if (inProgress) return 'in-progress'
 
+  // Level 1 is always the entry point — available to start even with no record
+  if (levelOrder === 1) return 'in-progress'
+
   // Levels 2+: available to start once previous level is solved
-  if (levelOrder > 1 && completedOrders.includes(levelOrder - 1)) {
+  if (completedOrders.includes(levelOrder - 1)) {
     return 'in-progress'
   }
 
-  // Level 1 with no progress record, or previous level not yet solved
   return 'locked'
 }
 

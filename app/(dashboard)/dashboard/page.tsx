@@ -37,7 +37,7 @@ export default function DashboardPage() {
     }).finally(() => setLoading(false))
   }, [user])
 
-  const activeLevel = levelCards.find((l) => l.status === 'in-progress')
+  const activeLevel = levelCards.find((l) => l.status === 'in-progress' && l.startedAt)
   const completedCount = levelCards.filter((l) => l.status === 'solved').length
 
   return (
@@ -104,7 +104,7 @@ export default function DashboardPage() {
                 <div>
                   <h3 className="text-lg font-semibold mb-1">Continue where you left off</h3>
                   <p className="text-sm text-muted-foreground">
-                    {activeLevel.title} - {activeLevel.attempts || 1} attempt(s) in progress
+                    {activeLevel.title} - {activeLevel.attempts} attempt(s) in progress
                   </p>
                 </div>
                 <Link href={`/level/${activeLevel.id}`}>
