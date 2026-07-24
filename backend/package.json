@@ -9,7 +9,8 @@
     "prisma": "prisma",
     "migrate": "prisma migrate dev",
     "migrate:prod": "prisma migrate deploy",
-    "seed": "tsx src/prisma/seed.ts"
+    "seed": "tsx src/prisma/seed.ts",
+    "test": "jest --forceExit --detectOpenHandles"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
@@ -32,6 +33,9 @@
     "zod": "^3.24.4"
   },
   "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "jest": "^30.4.2",
+    "ts-jest": "^29.4.12",
     "tsx": "^4.19.4"
   }
 }
