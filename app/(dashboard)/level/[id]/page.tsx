@@ -42,7 +42,7 @@ export default function LevelDetailPage({ params }: { params: Promise<{ id: stri
     Promise.all([
       levelsApi.list(),
       hintsApi.list(id),
-    ]).then(([levelsData, hintsData]) => {
+    ]).then(async ([levelsData, hintsData]) => {
       const found = levelsData.find((l) => l.id === id)
       if (found) {
         setLevel(found)
@@ -51,6 +51,16 @@ export default function LevelDetailPage({ params }: { params: Promise<{ id: stri
         if (found.status === 'in-progress' && found.startedAt) {
           const elapsed = Math.floor((Date.now() - new Date(found.startedAt).getTime()) / 1000)
           setTime(Math.max(0, elapsed))
+        }
+        if (found.status === 'in-progress' && !found.startedAt) {
+          try {
+            const started = await levelsApi.start(id)
+            setLevel((prev) => prev ? { ...prev, startedAt: started.startedAt } : prev)
+            if (started.startedAt) {
+              const elapsed = Math.floor((Date.now() - new Date(started.startedAt).getTime()) / 1000)
+              setTime(Math.max(0, elapsed))
+            }
+          } catch {}
         }
       }
       const revealedIds = hintsData.filter((h) => h.revealed).map((h) => h.hintOrder - 1)
