@@ -60,10 +60,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(false)
       return
     }
-    apiFetch<{ userId: string; email: string; displayName: string; createdAt: string }>('/dashboard/summary')
-      .then(() => {
-        return apiFetch<{ id: string; email: string; displayName: string; createdAt: string }>('/auth/me')
-      })
+    apiFetch<{ id: string; email: string; displayName: string; createdAt: string }>('/auth/me')
       .then((u) => {
         setUser({
           id: u.id,

@@ -112,10 +112,15 @@ export const auth = {
       return res
     }),
 
-  logout: () =>
-    apiFetch('/auth/logout', { method: 'POST' }).then(() => {
+  logout: () => {
+    const refresh = refreshToken
+    return apiFetch('/auth/logout', {
+      method: 'POST',
+      body: JSON.stringify({ refreshToken: refresh }),
+    }).then(() => {
       clearTokens()
-    }),
+    })
+  },
 }
 
 export const levels = {

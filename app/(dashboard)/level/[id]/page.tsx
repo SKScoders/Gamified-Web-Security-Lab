@@ -34,7 +34,8 @@ export default function LevelDetailPage({ params }: { params: Promise<{ id: stri
   const [attempts, setAttempts] = useState(0)
   const [revealedHints, setRevealedHints] = useState<number[]>([])
   const [flagInput, setFlagInput] = useState('')
-  const [submitStatus, setSubmitStatus] = useState<'idle' | 'correct' | 'wrong'>('idle')
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'correct' | 'wrong' | 'error'>('idle')
+  const [submitError, setSubmitError] = useState('')
   const [isComplete, setIsComplete] = useState(false)
 
   useEffect(() => {
@@ -105,11 +106,13 @@ export default function LevelDetailPage({ params }: { params: Promise<{ id: stri
         setIsComplete(true)
       } else {
         setSubmitStatus('wrong')
+        setSubmitError('')
         setTimeout(() => setSubmitStatus('idle'), 2000)
       }
-    } catch {
-      setSubmitStatus('wrong')
-      setTimeout(() => setSubmitStatus('idle'), 2000)
+    } catch (err: any) {
+      setSubmitStatus('error')
+      setSubmitError(err.message || 'Submission failed. Make sure you started this level.')
+      setTimeout(() => setSubmitStatus('idle'), 4000)
     }
   }
 
@@ -234,6 +237,9 @@ export default function LevelDetailPage({ params }: { params: Promise<{ id: stri
                 />
                 {submitStatus === 'wrong' && (
                   <p className="text-xs text-status-red mt-2">Incorrect flag. Try again.</p>
+                )}
+                {submitStatus === 'error' && (
+                  <p className="text-xs text-status-red mt-2">{submitError}</p>
                 )}
               </div>
               <Button
