@@ -49,11 +49,15 @@ router.get('/', authenticate, validate(leaderboardQuerySchema, 'query'), async (
         avatar: u.displayName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2),
         score: totalScore,
         levelsCompleted,
+        totalTimeSec,
         totalTime,
       }
     })
 
-    leaderboard.sort((a, b) => b.score - a.score)
+    leaderboard.sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score
+      return a.totalTimeSec - b.totalTimeSec
+    })
 
     const result = leaderboard.map((entry, idx) => ({
       rank: idx + 1,
