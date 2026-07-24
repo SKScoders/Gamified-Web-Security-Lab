@@ -8,18 +8,21 @@ datasource db {
 }
 
 model User {
-  id           String    @id @default(uuid())
-  email        String    @unique
-  passwordHash String    @map("password_hash")
-  displayName  String    @map("display_name")
-  createdAt    DateTime  @default(now()) @map("created_at")
+  id             String    @id @default(uuid())
+  email          String    @unique
+  passwordHash   String    @map("password_hash")
+  displayName    String    @map("display_name")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  currentStreak  Int       @default(0) @map("current_streak")
+  longestStreak  Int       @default(0) @map("longest_streak")
+  lastSolvedAt   DateTime? @map("last_solved_at")
 
-  sessions     Session[]
-  progress     Progress[]
-  hintUsage    HintUsage[]
-  auditLog     AuditLog[]
-  reports      Report[]
-  reviewViewed ReviewViewed[]
+  sessions       Session[]
+  progress       Progress[]
+  hintUsage      HintUsage[]
+  auditLog       AuditLog[]
+  reports        Report[]
+  reviewViewed   ReviewViewed[]
 
   @@map("users")
 }

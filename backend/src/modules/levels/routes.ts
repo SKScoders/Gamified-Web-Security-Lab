@@ -6,6 +6,7 @@ import { authenticate } from '../../middleware/auth'
 import { validate } from '../../middleware/validate'
 import { submitFlagSchema } from '../../validation/schemas'
 import { logEvent } from '../audit/service'
+import { updateStreak } from '../streak/service'
 
 const router = Router()
 const STAGE_SECRET = process.env.JWT_SECRET || 'sentinelchain-dev-jwt-secret'
@@ -267,6 +268,8 @@ router.post('/:id/submit', authenticate, validate(submitFlagSchema), async (req,
       })
 
       await logEvent(userId, 'level_completed', { levelId, score: level.points })
+
+      await updateStreak(userId)
 
       res.json({
         correct: true,

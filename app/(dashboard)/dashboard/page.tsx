@@ -13,7 +13,7 @@ import { levels as levelsApi, audit, toLevelCard } from '@/lib/api'
 import type { LevelCardData, AuditLogEntry } from '@/types'
 
 export default function DashboardPage() {
-  const { user, totalScore, levelsSolved, rank } = useAuth()
+  const { user, totalScore, levelsSolved, rank, streak } = useAuth()
   const [levelCards, setLevelCards] = useState<LevelCardData[]>([])
   const [auditLog, setAuditLog] = useState<AuditLogEntry[]>([])
   const [loading, setLoading] = useState(true)
@@ -60,7 +60,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Stats Grid */}
-          <StatsGrid stats={{ totalPoints: totalScore, levelsSolved, streak: 0, rank }} />
+          <StatsGrid stats={{ totalPoints: totalScore, levelsSolved, streak, rank }} />
 
           {/* Hero Progress Stepper */}
           <Card className="border-accent/50">

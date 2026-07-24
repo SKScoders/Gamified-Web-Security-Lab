@@ -14,6 +14,7 @@ interface AuthState {
   totalScore: number
   levelsSolved: number
   rank: number
+  streak: number
   refreshDashboard: () => Promise<void>
 }
 
@@ -26,6 +27,7 @@ const AuthContext = createContext<AuthState>({
   totalScore: 0,
   levelsSolved: 0,
   rank: 0,
+  streak: 0,
   refreshDashboard: async () => {},
 })
 
@@ -35,6 +37,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [totalScore, setTotalScore] = useState(0)
   const [levelsSolved, setLevelsSolved] = useState(0)
   const [rank, setRank] = useState(0)
+  const [streak, setStreak] = useState(0)
 
   const fetchDashboard = useCallback(async () => {
     try {
@@ -42,6 +45,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setTotalScore(summary.totalScore)
       setLevelsSolved(summary.levelsSolved)
       setRank(summary.rank)
+      setStreak(summary.streak ?? 0)
     } catch (err) {
       if (err instanceof Error && (err.message.includes('401') || err.message.includes('Unauthorized'))) {
         clearTokens()
@@ -96,11 +100,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setTotalScore(0)
     setLevelsSolved(0)
     setRank(0)
+    setStreak(0)
   }
 
   return (
     <AuthContext.Provider
-      value={{ user, isLoading, login, register, logout, totalScore, levelsSolved, rank, refreshDashboard: fetchDashboard }}
+      value={{ user, isLoading, login, register, logout, totalScore, levelsSolved, rank, streak, refreshDashboard: fetchDashboard }}
     >
       {children}
     </AuthContext.Provider>
