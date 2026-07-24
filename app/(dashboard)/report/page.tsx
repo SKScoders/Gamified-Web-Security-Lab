@@ -8,7 +8,7 @@ import { Collapsible } from '@/components/ui/collapsible'
 import { Button } from '@/components/ui/button'
 import { Download, FileText, AlertTriangle, Eye } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
-import { reports as reportsApi } from '@/lib/api'
+import { reports as reportsApi, levels as levelsApi } from '@/lib/api'
 import type { Level } from '@/types'
 
 interface LevelReport {
@@ -31,6 +31,12 @@ interface ReviewLevel {
   viewed: boolean
 }
 
+interface ReviewStatus {
+  total: number
+  viewed: number
+  levels: ReviewLevel[]
+}
+
 function getCvssSeverity(score: number): { label: string; color: string } {
   if (score >= 9.0) return { label: 'Critical', color: 'text-status-red' }
   if (score >= 7.0) return { label: 'High', color: 'text-status-amber' }
@@ -45,9 +51,14 @@ export default function FinalReportPage() {
   const [loading, setLoading] = useState(true)
   const [reportId, setReportId] = useState<string | null>(null)
   const [reportError, setReportError] = useState<string | null>(null)
-  const [reviewStatus, setReviewStatus] = useState<ReviewLevel[] | null>(null)
+  const [reviewStatus, setReviewStatus] = useState<ReviewStatus | null>(null)
+  const [totalLevels, setTotalLevels] = useState(4)
 
   useEffect(() => {
+    levelsApi.list().then((levels) => {
+      setTotalLevels(levels.length)
+    }).catch(() => {})
+
     reportsApi.generate().then(async (reportData) => {
       const summary = JSON.parse(reportData.summaryJson)
       setReports(summary.levelReports || [])
@@ -57,7 +68,7 @@ export default function FinalReportPage() {
       setReports([])
 
       reportsApi.status().then((status) => {
-        setReviewStatus(status.levels)
+        setReviewStatus(status)
       }).catch(() => {})
     }).finally(() => setLoading(false))
   }, [])
@@ -79,7 +90,7 @@ export default function FinalReportPage() {
     }
   }
 
-  const unviewedReviews = reviewStatus?.filter(r => !r.viewed) || []
+  const unviewedReviews = reviewStatus?.levels.filter(r => !r.viewed) || []
 
   return (
     <DashboardLayout>
@@ -110,8 +121,8 @@ export default function FinalReportPage() {
                 <div className="flex-1">
                   <h3 className="font-semibold mb-2">Report Locked</h3>
                   <p className="text-sm text-muted-foreground mb-4">
-                    View all 4 defensive code reviews to unlock your report.
-                    You have viewed {4 - unviewedReviews.length}/4 reviews.
+                    View all {reviewStatus?.total ?? 4} defensive code reviews to unlock your report.
+                    You have viewed {reviewStatus?.total ? reviewStatus.total - unviewedReviews.length : 0}/{reviewStatus?.total ?? 4} reviews.
                   </p>
                   <div className="space-y-2">
                     {unviewedReviews.map((review) => (
@@ -155,7 +166,7 @@ export default function FinalReportPage() {
                   </div>
                   <div className="border border-border rounded p-4">
                     <div className="text-xs text-muted-foreground mb-1">Levels Completed</div>
-                    <div className="text-2xl font-bold">{reports.length}/4</div>
+                    <div className="text-2xl font-bold">{reports.length}/{totalLevels}</div>
                   </div>
                   <div className="border border-border rounded p-4">
                     <div className="text-xs text-muted-foreground mb-1">Average CVSS</div>

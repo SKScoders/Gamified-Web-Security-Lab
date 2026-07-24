@@ -16,7 +16,7 @@ router.get('/status', authenticate, async (req, res) => {
     const viewedIds = new Set(reviewViewed.map(rv => rv.levelId))
 
     res.json({
-      total: 4,
+      total: allLevels.length,
       viewed: reviewViewed.length,
       levels: allLevels.map(l => ({
         id: l.id,
@@ -40,23 +40,24 @@ router.post('/generate', authenticate, async (req, res) => {
       include: { level: true },
     })
 
-    if (progressRows.length < 4) {
+    const allLevels = await prisma.level.findMany({ orderBy: { orderIndex: 'asc' } })
+
+    if (progressRows.length < allLevels.length) {
       return res.status(400).json({
-        error: 'Complete all 4 levels before generating a report',
+        error: `Complete all ${allLevels.length} levels before generating a report`,
         levelsCompleted: progressRows.length,
-        levelsRequired: 4,
+        levelsRequired: allLevels.length,
       })
     }
 
     const reviewViewed = await prisma.reviewViewed.findMany({ where: { userId } })
-    const allLevels = await prisma.level.findMany({ orderBy: { orderIndex: 'asc' } })
     const unviewedLevels = allLevels.filter(l => !reviewViewed.some(rv => rv.levelId === l.id))
 
     if (unviewedLevels.length > 0) {
       return res.status(400).json({
-        error: 'View all 4 defensive code reviews before generating a report',
-        reviewsViewed: 4 - unviewedLevels.length,
-        reviewsRequired: 4,
+        error: `View all ${allLevels.length} defensive code reviews before generating a report`,
+        reviewsViewed: allLevels.length - unviewedLevels.length,
+        reviewsRequired: allLevels.length,
         unviewedLevels: unviewedLevels.map(l => ({ id: l.id, title: l.title, orderIndex: l.orderIndex })),
       })
     }
@@ -113,7 +114,7 @@ router.post('/generate', authenticate, async (req, res) => {
       totalScore,
       totalTime: `${Math.floor(totalTimeMinutes)}m`,
       levelsCompleted: progressRows.length,
-      totalLevels: 4,
+      totalLevels: allLevels.length,
       averageCvss: progressRows.length > 0
         ? (progressRows.reduce((sum, p) => sum + p.level.cvssScore, 0) / progressRows.length).toFixed(1)
         : 0,
@@ -167,13 +168,14 @@ router.get('/:id/download', authenticate, async (req, res) => {
     }
 
     const summary = JSON.parse(report.summaryJson)
-    if (summary.levelsCompleted < 4) {
-      return res.status(400).json({ error: 'Complete all 4 levels before downloading the report' })
+    if (summary.levelsCompleted < summary.totalLevels) {
+      return res.status(400).json({ error: `Complete all ${summary.totalLevels} levels before downloading the report` })
     }
 
+    const allLevels = await prisma.level.findMany({ orderBy: { orderIndex: 'asc' } })
     const reviewViewed = await prisma.reviewViewed.findMany({ where: { userId: report.userId } })
-    if (reviewViewed.length < 4) {
-      return res.status(400).json({ error: 'View all 4 defensive code reviews before downloading the report' })
+    if (reviewViewed.length < allLevels.length) {
+      return res.status(400).json({ error: `View all ${allLevels.length} defensive code reviews before downloading the report` })
     }
 
     const user = await prisma.user.findUnique({ where: { id: report.userId } })

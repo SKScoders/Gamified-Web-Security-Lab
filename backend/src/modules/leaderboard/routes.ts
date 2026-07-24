@@ -6,6 +6,12 @@ import { leaderboardQuerySchema } from '../../validation/schemas'
 
 const router = Router()
 
+function parseBestTimeSec(bestTime: string | null): number {
+  if (!bestTime) return 0
+  const match = bestTime.match(/^(\d+)s$/)
+  return match ? parseInt(match[1], 10) : 0
+}
+
 router.get('/', authenticate, validate(leaderboardQuerySchema, 'query'), async (req, res) => {
   try {
     const timeframe = req.query.timeframe as string
@@ -22,23 +28,20 @@ router.get('/', authenticate, validate(leaderboardQuerySchema, 'query'), async (
         displayName: true,
         progress: {
           where: dateFilter ? { completedAt: { gte: dateFilter } } : {},
-          select: { score: true, completedAt: true },
+          select: { score: true, completedAt: true, bestTime: true },
         },
       },
     })
 
+    const levelCount = await prisma.level.count()
+
     const leaderboard = users.map(u => {
       const totalScore = u.progress.reduce((sum, p) => sum + p.score, 0)
       const levelsCompleted = u.progress.filter(p => p.completedAt).length
-      const totalTimeSec = u.progress.reduce((sum, p) => {
-        if (p.completedAt) {
-          return sum + 60
-        }
-        return sum
-      }, 0)
+      const totalTimeSec = u.progress.reduce((sum, p) => sum + parseBestTimeSec(p.bestTime), 0)
       const hours = Math.floor(totalTimeSec / 3600)
       const mins = Math.floor((totalTimeSec % 3600) / 60)
-      const totalTime = hours > 0 ? `${hours}h ${mins}m` : `${mins}m`
+      const totalTime = totalTimeSec > 0 ? (hours > 0 ? `${hours}h ${mins}m` : `${mins}m`) : '\u2014'
 
       return {
         userId: u.id,
@@ -58,7 +61,7 @@ router.get('/', authenticate, validate(leaderboardQuerySchema, 'query'), async (
       isCurrentUser: entry.userId === req.user?.userId,
     }))
 
-    res.json(result)
+    res.json({ totalLevels: levelCount, entries: result })
   } catch (err) {
     console.error('Leaderboard error:', err)
     res.status(500).json({ error: 'Internal server error' })

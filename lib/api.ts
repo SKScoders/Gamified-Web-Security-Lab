@@ -149,7 +149,7 @@ export const hints = {
 
 export const leaderboard = {
   get: (timeframe: 'all' | 'week' = 'all') =>
-    apiFetch<LeaderboardEntry[]>(`/leaderboard?timeframe=${timeframe}`),
+    apiFetch<{ totalLevels: number; entries: LeaderboardEntry[] }>(`/leaderboard?timeframe=${timeframe}`),
 }
 
 export const dashboard = {

@@ -60,7 +60,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Stats Grid */}
-          <StatsGrid stats={{ totalPoints: totalScore, levelsSolved, streak, rank }} />
+          <StatsGrid stats={{ totalPoints: totalScore, levelsSolved, streak, rank, totalLevels: levelCards.length || undefined }} />
 
           {/* Hero Progress Stepper */}
           <Card className="border-accent/50">

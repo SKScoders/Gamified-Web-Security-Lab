@@ -39,9 +39,7 @@ export default function ProfilePage() {
 
   const badges = [
     { name: 'First Blood', description: 'Completed first challenge', earned: certificates.length >= 1 },
-    { name: 'Chain Master', description: 'Completed all 4 levels', earned: levelsSolved >= 4 },
-    { name: 'Speed Demon', description: 'Completed a level under 15 minutes', earned: false },
-    { name: 'No Hints', description: 'Completed a level without hints', earned: false },
+    { name: 'Chain Master', description: `Completed all ${levelData.length || 4} levels`, earned: levelsSolved >= (levelData.length || 4) },
   ]
 
   if (!user) {
@@ -77,7 +75,7 @@ export default function ProfilePage() {
                   </div>
                   <div>
                     <div className="text-xs text-muted-foreground mb-1">Levels Solved</div>
-                    <div className="text-2xl font-bold">{levelsSolved}/4</div>
+                    <div className="text-2xl font-bold">{levelsSolved}/{levelData.length || 4}</div>
                   </div>
                   <div>
                     <div className="text-xs text-muted-foreground mb-1">Global Rank</div>
@@ -152,7 +150,7 @@ export default function ProfilePage() {
               <div className="border-t border-border pt-4 flex items-center justify-between">
                 <div>
                   <div className="font-medium">Password</div>
-                  <div className="text-sm text-muted-foreground">Last changed 30 days ago</div>
+                  <div className="text-sm text-muted-foreground">Set at registration</div>
                 </div>
                 <Button variant="outline" size="sm" disabled>
                   Change
@@ -161,7 +159,7 @@ export default function ProfilePage() {
               <div className="border-t border-border pt-4 flex items-center justify-between">
                 <div>
                   <div className="font-medium">Two-Factor Authentication</div>
-                  <div className="text-sm text-muted-foreground">Disabled</div>
+                  <div className="text-sm text-muted-foreground">Not available yet</div>
                 </div>
                 <Button variant="outline" size="sm" disabled>
                   Enable

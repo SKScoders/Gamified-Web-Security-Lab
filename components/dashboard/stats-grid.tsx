@@ -5,6 +5,7 @@ interface UserStats {
   levelsSolved: number
   streak: number
   rank: number
+  totalLevels?: number
 }
 
 interface StatsGridProps {
@@ -32,7 +33,7 @@ export function StatsGrid({ stats }: StatsGridProps) {
         </div>
         <div className="min-w-0">
           <p className="text-xs text-muted-foreground font-mono mb-1">SOLVED</p>
-          <p className="text-2xl font-semibold text-foreground">{stats.levelsSolved}/4</p>
+          <p className="text-2xl font-semibold text-foreground">{stats.levelsSolved}/{stats.totalLevels ?? 4}</p>
         </div>
       </div>
 

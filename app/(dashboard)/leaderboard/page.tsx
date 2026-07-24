@@ -15,13 +15,15 @@ export default function LeaderboardPage() {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [totalLevels, setTotalLevels] = useState(4)
   const { user } = useAuth()
 
   useEffect(() => {
     setLoading(true)
     setError(null)
     leaderboardApi.get(timeframe as 'all' | 'week').then((data) => {
-      setEntries(data)
+      setEntries(data.entries)
+      setTotalLevels(data.totalLevels)
     }).catch((err) => {
       if (err.message?.includes('401') || err.message?.includes('Unauthorized')) return
       if (err.message?.includes('Cannot reach backend')) {
@@ -44,7 +46,7 @@ export default function LeaderboardPage() {
               <Award size={28} className="text-accent" />
               <h1 className="text-3xl font-bold">Leaderboard</h1>
             </div>
-            <p className="text-muted-foreground">Compete with other hackers. Top scores reset weekly.</p>
+            <p className="text-muted-foreground">Compete with other hackers. Complete levels faster to climb the ranks.</p>
           </div>
 
           {error && (
@@ -65,7 +67,7 @@ export default function LeaderboardPage() {
             />
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <TrendingUp size={14} />
-              Updated every 5 minutes
+              Calculated on-demand
             </div>
           </div>
 
@@ -104,7 +106,7 @@ export default function LeaderboardPage() {
                         </div>
                       </TableCell>
                       <TableCell className="text-right font-mono font-semibold">{entry.score}</TableCell>
-                      <TableCell className="text-center font-mono">{entry.levelsCompleted}/4</TableCell>
+                      <TableCell className="text-center font-mono">{entry.levelsCompleted}/{totalLevels}</TableCell>
                       <TableCell className="text-right font-mono text-muted-foreground">{entry.totalTime}</TableCell>
                     </TableRow>
                   ))}
@@ -137,7 +139,7 @@ export default function LeaderboardPage() {
                       </TableCell>
                       <TableCell className="text-right font-mono font-semibold">{currentUser.score}</TableCell>
                       <TableCell className="text-center font-mono">
-                        {currentUser.levelsCompleted}/4
+                        {currentUser.levelsCompleted}/{totalLevels}
                       </TableCell>
                       <TableCell className="text-right font-mono text-muted-foreground">{currentUser.totalTime}</TableCell>
                     </TableRow>
@@ -151,7 +153,7 @@ export default function LeaderboardPage() {
           <div className="mt-6 p-4 border border-border rounded-lg bg-surface-secondary text-sm text-muted-foreground">
             <p>
               Your position is pinned to the bottom of the leaderboard. Complete more levels and reduce your time to
-              climb the ranks. Scores reset every Monday at 00:00 UTC.
+              climb the ranks.
             </p>
           </div>
         </div>
