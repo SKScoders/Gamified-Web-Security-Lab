@@ -34,55 +34,66 @@
 ## 2. Leaderboard Query Cost
 
 ### Current Flow (`GET /api/leaderboard`)
-1. `prisma.user.findMany()` — fetches ALL users
-2. For each user, `prisma.progress.findMany({ where: { userId } })` — **N+1 query pattern**
-3. In-memory sort by total points DESC, then totalTime ASC
-4. In-memory rank assignment
+1. `prisma.user.findMany()` with nested `select: { progress: ... }` — **single query with JOIN** (no N+1)
+2. In-memory sort by total points DESC
+3. In-memory rank assignment
+
+> **False positive corrected (2026-07-24):** The original audit claimed an N+1 pattern
+> ("For each user, `prisma.progress.findMany({ where: { userId } })`"). Reviewing the actual code
+> (commit `c537fd5`, the only prior commit touching this file) shows the implementation already
+> used Prisma's nested `select`, which produces a single query with a JOIN. There was never a
+> per-user query loop. The code shown in the "N+1 Query Detail" section below was fabricated by
+> the auditor and does not match the actual codebase.
 
 ### Assessment
 
 | Metric | Current | Target | Status |
 |--------|---------|--------|--------|
-| Query count | 1 + N (N = user count) | O(1) or O(log N) | ❌ N+1 problem |
+| Query count | 1 (single JOIN) | O(1) or O(log N) | ✅ No N+1 |
 | Response time (<100 users) | <500ms | <500ms | ✅ OK |
-| Response time (>1000 users) | >2s | <500ms | ❌ Fails |
-| Database load | High (one query per user) | Low | ❌ |
+| Response time (>1000 users) | <500ms | <500ms | ✅ OK (single query) |
+| Database load | Low | Low | ✅ |
 
-### N+1 Query Detail
+### ~~N+1 Query Detail~~ FALSE POSITIVE
 ```typescript
-// leaderboard/routes.ts — current implementation
-const users = await prisma.user.findMany()  // Query 1: all users
-for (const user of users) {
-  const progress = await prisma.progress.findMany({ where: { userId: user.id } })  // Query N
-  // ...
-}
-```
-
-**Fix:** Use a single query with `include`:
-```typescript
+// This code was cited by the auditor but NEVER EXISTED in the codebase.
+// The actual code (commit c537fd5) was:
 const users = await prisma.user.findMany({
-  include: { progress: { where: { status: 'solved' } } }
+  select: {
+    id: true,
+    displayName: true,
+    progress: {  // nested select — single query with JOIN, not N+1
+      where: dateFilter ? { completedAt: { gte: dateFilter } } : {},
+      select: { score: true, completedAt: true },
+    },
+  },
 })
 ```
 
-### Fake `totalTime` Calculation
+### Fake `totalTime` Calculation — FIXED (commit 9e4092f)
 ```typescript
-// leaderboard/routes.ts:36-41
-const totalTime = completedLevels.length * 60  // Always 60s per level
+// BEFORE (c537fd5):
+const totalTimeSec = u.progress.reduce((sum, p) => {
+  if (p.completedAt) { return sum + 60 }
+  return sum
+}, 0)
+
+// AFTER (9e4092f):
+const totalTimeSec = u.progress.reduce((sum, p) => sum + parseBestTimeSec(p.bestTime), 0)
+// parseBestTimeSec("120s") → 120, null → 0
 ```
-This is hardcoded and doesn't use actual `bestTime` from Progress records.
 
 ---
 
 ## 3. N+1 Queries
 
-| Location | Pattern | Impact |
-|----------|---------|--------|
-| `leaderboard/routes.ts` | Fetch all users, then fetch progress per user | **High** — O(N) queries |
-| `levels/routes.ts:39` | `progressRows` fetched separately from `levels` | Low — single query each |
-| `hints/routes.ts` | Hint reveal fetches level, hint, and usage separately | Low — 3 queries, infrequent |
+| Location | Pattern | Impact | Status |
+|----------|---------|--------|--------|
+| `leaderboard/routes.ts` | ~~Fetch all users, then fetch progress per user~~ | ~~**High**~~ | ✅ **False positive** — code already uses nested select (single JOIN) |
+| `levels/routes.ts:39` | `progressRows` fetched separately from `levels` | Low — single query each | ✅ |
+| `hints/routes.ts` | Hint reveal fetches level, hint, and usage separately | Low — 3 queries, infrequent | ✅ |
 
-**Only the leaderboard has a real N+1 problem.**
+**No real N+1 queries exist in the codebase.**
 
 ---
 
@@ -108,7 +119,7 @@ This is hardcoded and doesn't use actual `bestTime` from Progress records.
 
 | File | Size (approx) | Status |
 |------|---------------|--------|
-| `lib/mock-data.ts` | 436 lines (~12KB) | ❌ Dead code — bundled but never imported. If tree-shaken, no impact. If not, 12KB wasted. |
+| `lib/mock-data.ts` | ~~436 lines (~12KB)~~ | ✅ Deleted (commit 9e4092f) — zero imports confirmed |
 | `lib/api.ts` | ~3KB | ✅ |
 | `lib/api-client.ts` | ~2KB | ✅ |
 | `components/dashboard/stats-grid.tsx` | ~1KB | ✅ |
@@ -132,15 +143,15 @@ This is hardcoded and doesn't use actual `bestTime` from Progress records.
 
 ## 6. Performance Recommendations
 
-| # | Recommendation | Priority | Impact |
-|---|----------------|----------|--------|
-| 1 | **Fix N+1 in leaderboard** — use `include` or aggregation | High | Reduces queries from O(N) to O(1) |
-| 2 | **Use actual `bestTime` for leaderboard totalTime** | Medium | Accurate data, no extra queries |
-| 3 | **Add index on `audit_log.user_id`** | Medium | Faster audit queries |
-| 4 | **Delete `lib/mock-data.ts`** | Low | Removes dead code |
-| 5 | **Add database connection pooling** (PgBouncer via Neon) | Medium | Reduces cold start impact |
-| 6 | **Cache leaderboard results** (Redis or in-memory, 5min TTL) | Medium | Reduces DB load on repeated requests |
-| 7 | **Use Prisma `aggregate` for dashboard totalScore** | Low | Single SQL SUM vs fetching all progress |
+| # | Recommendation | Priority | Impact | Status |
+|---|----------------|----------|--------|--------|
+| 1 | ~~Fix N+1 in leaderboard~~ | ~~High~~ | ~~Reduces queries from O(N) to O(1)~~ | ✅ False positive — no N+1 existed |
+| 2 | **Use actual `bestTime` for leaderboard totalTime** | Medium | Accurate data, no extra queries | ✅ Fixed (commit 9e4092f) |
+| 3 | **Add index on `audit_log.user_id`** | Medium | Faster audit queries | ⬜ Not done |
+| 4 | **Delete `lib/mock-data.ts`** | Low | Removes dead code | ✅ Fixed (commit 9e4092f) |
+| 5 | **Add database connection pooling** (PgBouncer via Neon) | Medium | Reduces cold start impact | ⬜ Not done |
+| 6 | **Cache leaderboard results** (Redis or in-memory, 5min TTL) | Medium | Reduces DB load on repeated requests | ⬜ Not done |
+| 7 | **Use Prisma `aggregate` for dashboard totalScore** | Low | Single SQL SUM vs fetching all progress | ⬜ Not done |
 
 ---
 
@@ -151,7 +162,7 @@ This is hardcoded and doesn't use actual `bestTime` from Progress records.
 | Dashboard warm load | <1s | ✅ Yes (~300ms) |
 | Dashboard cold load | <1s | ❌ No (10–30s cold start) |
 | Leaderboard warm load | <500ms | ✅ Yes for <100 users |
-| Leaderboard with 1000+ users | <500ms | ❌ No (N+1 queries) |
+| Leaderboard with 1000+ users | <500ms | ✅ Yes (single query with JOIN) |
 | PDF generation | <5s | ⚠️ May timeout on free tier |
 
 **Honest assessment:** Free tier is adequate for a hackathon demo with <50 users. For production, would need paid Render plan + connection pooling.
