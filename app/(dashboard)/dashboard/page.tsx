@@ -104,7 +104,9 @@ export default function DashboardPage() {
                 <div>
                   <h3 className="text-lg font-semibold mb-1">Continue where you left off</h3>
                   <p className="text-sm text-muted-foreground">
-                    {activeLevel.title} - {activeLevel.attempts} attempt(s) in progress
+                    {activeLevel.title} - {activeLevel.attempts > 0
+                      ? `${activeLevel.attempts} attempt(s) in progress`
+                      : `Started — no attempts yet`}
                   </p>
                 </div>
                 <Link href={`/level/${activeLevel.id}`}>
